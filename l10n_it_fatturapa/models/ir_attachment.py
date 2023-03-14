@@ -116,7 +116,7 @@ class Attachment(models.Model):
         xsl_path = get_resource_path(
             "l10n_it_fatturapa",
             "data",
-            self.env.company.fatturapa_preview_style,
+            self.company_id.fatturapa_preview_style,
         )
         xslt = ET.parse(xsl_path)
         xml_string = self.get_xml_string()
