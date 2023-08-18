@@ -4,6 +4,11 @@
 from odoo import models, fields, api
 
 
+def _check_company_fiscal_code(fiscal_code):
+    """`fiscal_code` is the Fiscal Code of a Company."""
+    return len(fiscal_code) == 11
+
+
 def _check_person_fiscal_code(fiscal_code):
     """`fiscal_code` is the Fiscal Code of a Person."""
     return len(fiscal_code) == 16
@@ -24,10 +29,13 @@ class ResPartner(models.Model):
                 if partner.company_name:
                     # In E-commerce, if there is company_name,
                     # the user might insert VAT in fiscalcode field.
-                    # Perform the same check as Company case
-                    continue
-                if not _check_person_fiscal_code(fiscal_code):
+                    if not _check_company_fiscal_code(fiscal_code):
+                        return False
+                elif not _check_person_fiscal_code(fiscal_code):
                     # Check fiscalcode of a person
+                    return False
+            elif partner.company_type == 'company':
+                if not _check_company_fiscal_code(fiscal_code):
                     return False
         return True
 
