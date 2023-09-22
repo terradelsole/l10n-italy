@@ -198,6 +198,11 @@
                                                        'readonly': [('delivery_note_readonly', '=', True)]}"
                                         />
                                         <field
+                                            name="delivery_note_partner_id"
+                                            attrs="{'required': [('delivery_note_exists', '=', True)],
+                                                       'readonly': [('delivery_note_readonly', '=', True)]}"
+                                        />
+                                        <field
                                             name="delivery_note_partner_shipping_id"
                                             attrs="{'required': [('delivery_note_exists', '=', True)],
                                                        'readonly': [('delivery_note_readonly', '=', True)]}"
