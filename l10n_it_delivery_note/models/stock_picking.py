@@ -29,6 +29,9 @@ class StockPicking(models.Model):
         string="DN State", related="delivery_note_id.state"
     )
     delivery_note_partner_ref = fields.Char(related="delivery_note_id.partner_ref")
+    delivery_note_partner_id = fields.Many2one(
+        "res.partner", string="DN Customer", related="delivery_note_id.partner_id"
+    )
     delivery_note_partner_shipping_id = fields.Many2one(
         "res.partner", related="delivery_note_id.partner_shipping_id"
     )
