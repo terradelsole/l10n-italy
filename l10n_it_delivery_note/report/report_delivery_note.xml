@@ -11,18 +11,6 @@
 
             <!--if is an outgoing move -->
             <t id="partner_outgoing" t-if="doc.type_code=='outgoing'">
-                <t t-set="address">
-                    <h4>
-                        <strong>Delivery address:</strong>
-                    </h4>
-                    <div
-                        t-field="doc.partner_shipping_id"
-                        t-options='{"widget": "contact", "fields": ["address", "name", "phone"], "no_marker": True, "phone_icons": True}'
-                    />
-                    <p t-if="doc.partner_shipping_id.vat"><t
-                            t-esc="doc.company_id.country_id.vat_label or 'Tax ID'"
-                        />: <span t-field="doc.partner_shipping_id.vat" /></p>
-                </t>
                 <t t-set="information_block">
                     <h4>
                         <strong>Customer:</strong>
@@ -46,10 +34,34 @@
                             />: <span t-field="doc.partner_id.vat" /></p>
                     </t>
                 </t>
+                <t t-set="address">
+                    <h4>
+                        <strong>Delivery address:</strong>
+                    </h4>
+                    <div
+                        t-field="doc.partner_shipping_id"
+                        t-options='{"widget": "contact", "fields": ["address", "name", "phone"], "no_marker": True, "phone_icons": True}'
+                    />
+                    <p t-if="doc.partner_shipping_id.vat"><t
+                            t-esc="doc.company_id.country_id.vat_label or 'Tax ID'"
+                        />: <span t-field="doc.partner_shipping_id.vat" /></p>
+                </t>
             </t>
 
             <!--if is an internal move -->
             <t id="partner_outgoing" t-if="doc.type_code=='internal'">
+                <t t-set="information_block">
+                    <h4>
+                        <strong>Customer:</strong>
+                    </h4>
+                    <div
+                        t-field="doc.partner_id"
+                        t-options='{"widget": "contact", "fields": ["address", "name", "phone"], "no_marker": True, "phone_icons": True}'
+                    />
+                    <p t-if="doc.partner_id.vat"><t
+                            t-esc="doc.company_id.country_id.vat_label or 'Tax ID'"
+                        />: <span t-field="doc.partner_id.vat" /></p>
+                </t>
                 <t t-set="address">
                     <h4>
                         <strong>Delivery address:</strong>
@@ -86,25 +98,11 @@
                         </t>
                     </t>
                 </t>
-                <t t-if="doc.picking_ids and doc.picking_ids[0].location_id.id">
-                    <t t-set="information_block">
-                        <h4>
-                            <strong>Shipping from:</strong>
-                        </h4>
-                        <p>
-                            <t
-                                t-esc="doc.get_location_address(doc.picking_ids[0].location_id.id)"
-                            />
-                        </p>
-                    </t>
-                </t>
             </t>
 
             <div class="page">
                 <div id="warehouse_outgoing">
-                    <div
-                        t-if="doc.type_code=='outgoing' and doc.picking_ids and doc.picking_ids[0].location_id.id"
-                    >
+                    <div t-if="doc.picking_ids and doc.picking_ids[0].location_id.id">
                         <strong>Shipping from:</strong>
                         <p>
                             <t
