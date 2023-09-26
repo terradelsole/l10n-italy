@@ -193,6 +193,11 @@
                                             />
                                         </div>
                                         <field
+                                            name="delivery_note_shipping_from"
+                                            attrs="{'required': [('delivery_note_exists', '=', True)],
+                                                       'readonly': [('delivery_note_readonly', '=', True)]}"
+                                        />
+                                        <field
                                             name="delivery_note_partner_ref"
                                             attrs="{'invisible': [('delivery_note_type_code', '!=', 'incoming')],
                                                        'readonly': [('delivery_note_readonly', '=', True)]}"
