@@ -732,6 +732,21 @@ class StockDeliveryNote(models.Model):
 
         return location_address
 
+    @api.model
+    def get_partner_address(self, partner_id):
+        partner_address = ""
+
+        if partner_id:
+            partner_address += "{}, ".format(partner_id.name)
+            if partner_id.street:
+                partner_address += "{} - ".format(partner_id.street)
+
+            partner_address += "{} {}".format(partner_id.zip, partner_id.city)
+            if partner_id.state_id:
+                partner_address += " ({})".format(partner_id.state_id.name)
+
+        return partner_address
+
 
 class StockDeliveryNoteLine(models.Model):
     _name = "stock.delivery.note.line"
