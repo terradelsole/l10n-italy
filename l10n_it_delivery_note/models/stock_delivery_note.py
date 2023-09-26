@@ -78,6 +78,17 @@ class StockDeliveryNote(models.Model):
 
         return [("category_id", "=", uom_category_id.id)]
 
+    def _default_shipping_from(self):
+        if self.picking_ids:
+            picking = self.picking_ids[0]
+            if self.type_code == "incoming":
+                picking.delivery_note_shipping_from = picking.partner_id
+            elif picking.location_id:
+                warehouse = self.env["stock.warehouse"].search(
+                    [("lot_stock_id", "=", picking.location_id.id)]
+                )
+                picking.delivery_note_shipping_from = warehouse.partner_id
+
     active = fields.Boolean(default=True)
     name = fields.Char(
         string="Name",
@@ -105,9 +116,9 @@ class StockDeliveryNote(models.Model):
 
     partner_sender_id = fields.Many2one(
         "res.partner",
-        string="Sender",
+        string="Shipping from",
         states=DRAFT_EDITABLE_STATE,
-        default=_default_company,
+        default=_default_shipping_from,
         readonly=True,
         required=True,
         tracking=True,

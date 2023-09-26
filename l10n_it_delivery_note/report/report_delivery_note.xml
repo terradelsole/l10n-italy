@@ -110,17 +110,10 @@
 
             <div class="page">
                 <div id="warehouse_outgoing">
-                    <div t-if="doc.picking_ids and doc.picking_ids[0].partner_id.id">
+                    <div>
                         <strong>Shipping from:</strong>
                         <p>
-                            <t
-                                t-if="doc.type_code=='incoming'"
-                                t-esc="doc.get_partner_address(doc.picking_ids[0].partner_id)"
-                            />
-                            <t
-                                t-else=""
-                                t-esc="doc.get_location_address(doc.picking_ids[0].location_id.id)"
-                            />
+                            <t t-esc="doc.get_partner_address(doc.partner_sender_id)" />
                         </p>
                     </div>
                 </div>

@@ -36,7 +36,7 @@ class StockPicking(models.Model):
         "res.partner", related="delivery_note_id.partner_shipping_id"
     )
     delivery_note_shipping_from = fields.Many2one(
-        "res.partner", string="Shipping from", compute="_compute_shipping_from"
+        "res.partner", related="delivery_note_id.partner_sender_id"
     )
 
     delivery_note_carrier_id = fields.Many2one(
@@ -115,19 +115,6 @@ class StockPicking(models.Model):
         type(self)._delivery_note_fields = fields
 
         return fields
-
-    def _compute_shipping_from(self):
-        for picking in self:
-            if picking.delivery_note_exists:
-                if picking.delivery_note_id.type_code == "incoming":
-                    picking.delivery_note_shipping_from = picking.partner_id
-                elif picking.location_id:
-                    warehouse = self.env["stock.warehouse"].search(
-                        [("lot_stock_id", "=", picking.location_id.id)]
-                    )
-                    picking.delivery_note_shipping_from = warehouse.partner_id
-            else:
-                picking.delivery_note_shipping_from = None
 
     def _compute_boolean_flags(self):
         from_delivery_note = self.env.context.get("from_delivery_note")
