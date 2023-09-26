@@ -748,6 +748,8 @@ class StockDeliveryNote(models.Model):
         partner_address = ""
 
         if partner_id:
+            if partner_id.parent_id:
+                partner_address += "{}, ".format(partner_id.parent_id.name)
             partner_address += "{}, ".format(partner_id.name)
             if partner_id.street:
                 partner_address += "{} - ".format(partner_id.street)
