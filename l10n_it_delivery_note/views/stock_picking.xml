@@ -193,11 +193,6 @@
                                             />
                                         </div>
                                         <field
-                                            name="delivery_note_shipping_from"
-                                            attrs="{'required': [('delivery_note_exists', '=', True)],
-                                                       'readonly': [('delivery_note_readonly', '=', True)]}"
-                                        />
-                                        <field
                                             name="delivery_note_partner_ref"
                                             attrs="{'invisible': [('delivery_note_type_code', '!=', 'incoming')],
                                                        'readonly': [('delivery_note_readonly', '=', True)]}"
@@ -213,14 +208,9 @@
                                                        'readonly': [('delivery_note_readonly', '=', True)]}"
                                         />
                                         <field
-                                            name="delivery_note_carrier_id"
-                                            attrs="{'readonly': [('delivery_note_readonly', '=', True)]}"
-                                            domain="[('is_carrier','=', True)]"
-                                            string="Carrier"
-                                        />
-                                        <field
-                                            name="delivery_method_id"
-                                            attrs="{'readonly': [('delivery_note_readonly', '=', True)]}"
+                                            name="delivery_note_shipping_from"
+                                            attrs="{'required': [('delivery_note_exists', '=', True)],
+                                                       'readonly': [('delivery_note_readonly', '=', True)]}"
                                         />
                                     </group>
                                     <group>
@@ -250,6 +240,16 @@
                                                 title="Update to now"
                                             />
                                         </div>
+                                        <field
+                                            name="delivery_note_carrier_id"
+                                            attrs="{'readonly': [('delivery_note_readonly', '=', True)]}"
+                                            domain="[('is_carrier','=', True)]"
+                                            string="Carrier"
+                                        />
+                                        <field
+                                            name="delivery_method_id"
+                                            attrs="{'readonly': [('delivery_note_readonly', '=', True)]}"
+                                        />
                                     </group>
                                 </group>
                                 <group
