@@ -52,59 +52,35 @@
                 </t>
             </t>
 
-            <!--if is an outgoing or incoming move -->
-            <t t-if="doc.type_code in ['outgoing', 'incoming']">
-                <t t-set="address">
-                    <h4>
-                        <strong>Delivery address:</strong>
-                    </h4>
-                    <div
-                        t-field="doc.partner_shipping_id"
-                        t-options='{"widget": "contact", "fields": ["address", "name", "phone"], "no_marker": True, "phone_icons": True}'
-                    />
-                    <p t-if="doc.partner_shipping_id.vat"><t
-                            t-esc="doc.company_id.country_id.vat_label or 'Tax ID'"
-                        />: <span t-field="doc.partner_shipping_id.vat" /></p>
-                </t>
-            </t>
-
-            <!--if is an internal move -->
-            <t t-if="doc.type_code=='internal'">
-                <t t-set="address">
-                    <h4>
-                        <strong>Delivery address:</strong>
-                    </h4>
-                    <t t-if="doc.partner_id.id == doc.partner_sender_id.id">
+            <t t-set="address">
+                <h4>
+                    <strong>Delivery address:</strong>
+                </h4>
+                <!--if is an internal move -->
+                <t t-if="doc.type_code=='internal'">
+                     <t t-if="doc.partner_id.id == doc.partner_sender_id.id">
                         <div
                             t-field="doc.partner_shipping_id"
                             t-options='{"widget": "contact", "fields": ["address", "name", "phone"], "no_marker": True, "phone_icons": True}'
                         />
-                        <p t-if="doc.partner_shipping_id.vat"><t
-                                t-esc="doc.company_id.country_id.vat_label or 'Tax ID'"
-                            />: <span t-field="doc.partner_shipping_id.vat" /></p>
                     </t>
                     <t t-if="doc.partner_id.id != doc.partner_sender_id.id">
                         <t
-                            t-if="doc.partner_sender_id.id != doc.partner_shipping_id.id"
+                            t-if="doc.partner_sender_id.id == doc.partner_shipping_id.id"
                         >
-                            <div
-                                t-field="doc.partner_shipping_id"
-                                t-options='{"widget": "contact", "fields": ["address", "name", "phone"], "no_marker": True, "phone_icons": True}'
-                            />
-                            <p t-if="doc.partner_shipping_id.vat"><t
-                                    t-esc="doc.company_id.country_id.vat_label or 'Tax ID'"
-                                />: <span t-field="doc.partner_shipping_id.vat" /></p>
-                        </t>
-                        <t t-else="">
                             <div
                                 t-field="doc.partner_sender_id"
                                 t-options='{"widget": "contact", "fields": ["address", "name", "phone"], "no_marker": True, "phone_icons": True}'
                             />
-                            <p t-if="doc.partner_sender_id.vat"><t
-                                    t-esc="doc.company_id.country_id.vat_label or 'Tax ID'"
-                                />: <span t-field="doc.partner_sender_id.vat" /></p>
                         </t>
                     </t>
+                </t>
+                <!--if is an outgoing or incoming move -->
+                <t t-else="">
+                    <div
+                        t-field="doc.partner_shipping_id"
+                        t-options='{"widget": "contact", "fields": ["address", "name", "phone"], "no_marker": True, "phone_icons": True}'
+                    />
                 </t>
             </t>
 
