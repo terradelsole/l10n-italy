@@ -270,7 +270,7 @@ class StockDeliveryNote(models.Model):
     print_prices = fields.Boolean(
         string="Show prices on printed DN", related="type_id.print_prices", store=True
     )
-    note = fields.Html(string="Internal note", states=DONE_READONLY_STATE)
+    note = fields.Html(string="DN Notes", states=DONE_READONLY_STATE)
 
     can_change_number = fields.Boolean(compute="_compute_boolean_flags")
     show_product_information = fields.Boolean(compute="_compute_boolean_flags")
