@@ -379,6 +379,7 @@ class StockPicking(models.Model):
                     or partners[1].default_transport_method_id.id
                     or type_id.default_transport_method_id.id
                 ),
+                "note": type_id.note,
             }
         )
 
