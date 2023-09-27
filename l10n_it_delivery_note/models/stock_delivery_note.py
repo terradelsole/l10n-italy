@@ -479,6 +479,20 @@ class StockDeliveryNote(models.Model):
 
     def action_confirm(self):
         for note in self:
+            if not (
+                note.transport_condition_id
+                and note.goods_appearance_id
+                and note.transport_reason_id
+                and note.transport_method_id
+            ):
+                raise UserError(
+                    _(
+                        "You cannot validate a delivery note without setting "
+                        "these fields:\n"
+                        "condition of transport, appearance of goods, "
+                        "reason of transport and method of transport"
+                    )
+                )
             sequence = note.type_id.sequence_id
 
             note.state = DOMAIN_DELIVERY_NOTE_STATES[1]
