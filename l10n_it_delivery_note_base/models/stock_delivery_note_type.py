@@ -51,7 +51,7 @@ class StockDeliveryNoteType(models.Model):
     company_id = fields.Many2one(
         "res.company", string="Company", default=lambda self: self.env.company
     )
-    note = fields.Html(string="Internal note")
+    note = fields.Html(string="DN Notes")
 
     _sql_constraints = [
         (

@@ -20,7 +20,7 @@
                 >
                     <attribute
                         name="attrs"
-                    >{'required': [('picking_type_code', '!=', 'internal')], 'invisible': [('picking_type_code', '=', 'internal')]}</attribute>
+                    >{'required': [('picking_type_code', '!=', 'internal')]}</attribute>
                 </xpath>
                 <xpath
                     expr="//button[@name='%(stock.action_report_delivery)d']"
@@ -198,19 +198,19 @@
                                                        'readonly': [('delivery_note_readonly', '=', True)]}"
                                         />
                                         <field
+                                            name="delivery_note_partner_id"
+                                            attrs="{'required': [('delivery_note_exists', '=', True)],
+                                                       'readonly': [('delivery_note_readonly', '=', True)]}"
+                                        />
+                                        <field
                                             name="delivery_note_partner_shipping_id"
                                             attrs="{'required': [('delivery_note_exists', '=', True)],
                                                        'readonly': [('delivery_note_readonly', '=', True)]}"
                                         />
                                         <field
-                                            name="delivery_note_carrier_id"
-                                            attrs="{'readonly': [('delivery_note_readonly', '=', True)]}"
-                                            domain="[('is_carrier','=', True)]"
-                                            string="Carrier"
-                                        />
-                                        <field
-                                            name="delivery_method_id"
-                                            attrs="{'readonly': [('delivery_note_readonly', '=', True)]}"
+                                            name="delivery_note_shipping_from"
+                                            attrs="{'required': [('delivery_note_exists', '=', True)],
+                                                       'readonly': [('delivery_note_readonly', '=', True)]}"
                                         />
                                     </group>
                                     <group>
@@ -240,6 +240,16 @@
                                                 title="Update to now"
                                             />
                                         </div>
+                                        <field
+                                            name="delivery_note_carrier_id"
+                                            attrs="{'readonly': [('delivery_note_readonly', '=', True)]}"
+                                            domain="[('is_carrier','=', True)]"
+                                            string="Carrier"
+                                        />
+                                        <field
+                                            name="delivery_method_id"
+                                            attrs="{'readonly': [('delivery_note_readonly', '=', True)]}"
+                                        />
                                     </group>
                                 </group>
                                 <group
