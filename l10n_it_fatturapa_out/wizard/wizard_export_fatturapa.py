@@ -136,7 +136,7 @@ class WizardExportFatturapa(models.TransientModel):
             tax_line_id = tax_id.tax_line_id
             aliquota = format_numbers(tax_line_id.amount)
             key = _key(tax_line_id)
-            if invoice.move_type == 'out_invoice':
+            if invoice.move_type == "out_invoice":
                 if tax_id.credit == 0.0 and tax_id.debit:
                     tax_amount = -tax_id.balance
                 if tax_id.credit and tax_id.debit == 0.0:
