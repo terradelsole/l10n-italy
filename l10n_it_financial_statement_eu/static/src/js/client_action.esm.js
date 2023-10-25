@@ -1,7 +1,6 @@
 /** @odoo-module **/
 import {ReportAction} from "@web/webclient/actions/reports/report_action";
 import {patch} from "web.utils";
-// Import { patch } from '@web/core/utils/patch';
 import {useEnrichWithActionLinks} from "./report.esm";
 
 const MODULE_NAME = "l10n_it_financial_statement_eu";
