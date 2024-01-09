@@ -31,6 +31,18 @@ def is_base64(s):
     return re_base64.match(s)
 
 
+class Attachment(models.Model):
+    _inherit = "ir.attachment"
+
+    @api.model
+    def _check_access_ftpa(self, mode, ftpa_attachment):
+        # checking access to fatturapa.attachment, similar to ir.attachment.check
+        # when attachment is linked to a record
+        access_mode = "write" if mode in ("create", "unlink") else mode
+        ftpa_attachment.with_user(self.env.user.id).check_access_rights(access_mode)
+        ftpa_attachment.with_user(self.env.user.id).check_access_rule(access_mode)
+
+
 class FatturaPAAttachment(models.Model):
     _name = "fatturapa.attachment"
     _description = "SdI file"

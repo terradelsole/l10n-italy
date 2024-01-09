@@ -10,6 +10,24 @@ _logger = logging.getLogger(__name__)
 SELF_INVOICE_TYPES = ("TD16", "TD17", "TD18", "TD19", "TD20", "TD21", "TD27", "TD28")
 
 
+class Attachment(models.Model):
+    _inherit = "ir.attachment"
+
+    @api.model
+    def check(self, mode, values=None):
+        for attachment in self:
+            ftpa_attachment = (
+                self.env["fatturapa.attachment.in"]
+                .sudo()
+                .search([("ir_attachment_id", "=", attachment.id)])
+            )
+            if ftpa_attachment:
+                self._check_access_ftpa(mode, ftpa_attachment)
+            else:
+                super(Attachment, attachment).check(mode, values)
+        return None
+
+
 class FatturaPAAttachmentIn(models.Model):
     _inherit = "fatturapa.attachment"
     _name = "fatturapa.attachment.in"
