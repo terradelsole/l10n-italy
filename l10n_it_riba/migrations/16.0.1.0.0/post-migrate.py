@@ -1,4 +1,5 @@
 #  Copyright 2023 Simone Rubino - AionTech
+#  Copyright 2024 Nextev Srl
 #  License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl).
 
 from openupgradelib import openupgrade
@@ -13,19 +14,33 @@ def migrate(env, version):
         NEW_MODULE_NAME,
         "migrations/16.0.1.0.0/data/noupdate.xml",
     )
-    # remove riba.distinta[.line].state refs
-    distinta_line_state_refs = env["ir.model.data"].search(
+
+    openupgrade.map_values(
+        env.cr,
+        openupgrade.get_legacy_name("state"),
+        "state",
         [
-            ("module", "=", "l10n_it_riba"),
-            ("name", "like", "selection__riba_distinta_line__state__%"),
-        ]
+            ("draft", "draft"),
+            ("confirmed", "confirmed"),
+            ("accredited", "credited"),
+            ("paid", "paid"),
+            ("unsolved", "past_due"),
+            ("cancel", "cancel"),
+        ],
+        table="riba_slip_line",
     )
-    distinta_line_state_refs.unlink()
-    # remove riba.distinta.state refs
-    distinta_line_refs = env["ir.model.data"].search(
+
+    openupgrade.map_values(
+        env.cr,
+        openupgrade.get_legacy_name("state"),
+        "state",
         [
-            ("module", "=", "l10n_it_riba"),
-            ("name", "like", "selection__riba_distinta__state%%"),
-        ]
+            ("draft", "draft"),
+            ("accepted", "accepted"),
+            ("accredited", "credited"),
+            ("paid", "paid"),
+            ("unsolved", "past_due"),
+            ("cancel", "cancel"),
+        ],
+        table="riba_slip",
     )
-    distinta_line_refs.unlink()
