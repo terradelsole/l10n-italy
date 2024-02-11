@@ -3,6 +3,7 @@ asn1crypto
 codicefiscale
 elementpath
 openupgradelib
+phonenumbers
 unidecode
 xlrd
 xlsxwriter
