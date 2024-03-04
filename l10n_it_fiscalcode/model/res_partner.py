@@ -1,6 +1,17 @@
+# Copyright 2023 Simone Rubino - TAKOBI
 # License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl).
 
 from odoo import models, fields, api
+
+
+def _check_company_fiscal_code(fiscal_code):
+    """`fiscal_code` is the Fiscal Code of a Company."""
+    return len(fiscal_code) == 11
+
+
+def _check_person_fiscal_code(fiscal_code):
+    """`fiscal_code` is the Fiscal Code of a Person."""
+    return len(fiscal_code) == 16
 
 
 class ResPartner(models.Model):
@@ -9,7 +20,8 @@ class ResPartner(models.Model):
     @api.multi
     def check_fiscalcode(self):
         for partner in self:
-            if not partner.fiscalcode:
+            fiscal_code = partner.fiscalcode
+            if not fiscal_code:
                 # Because it is not mandatory
                 continue
             elif partner.company_type == 'person':
@@ -17,10 +29,13 @@ class ResPartner(models.Model):
                 if partner.company_name:
                     # In E-commerce, if there is company_name,
                     # the user might insert VAT in fiscalcode field.
-                    # Perform the same check as Company case
-                    continue
-                if len(partner.fiscalcode) != 16:
+                    if not _check_company_fiscal_code(fiscal_code):
+                        return False
+                elif not _check_person_fiscal_code(fiscal_code):
                     # Check fiscalcode of a person
+                    return False
+            elif partner.company_type == 'company':
+                if not _check_company_fiscal_code(fiscal_code):
                     return False
         return True
 
