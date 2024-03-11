@@ -48,13 +48,18 @@ class StockDeliveryNote(models.Model):
     ]
     _description = "Delivery Note"
     _order = "date DESC, id DESC"
+    _check_company_auto = True
 
     def _default_company(self):
         return self.env.company
 
     def _default_type(self):
         return self.env["stock.delivery.note.type"].search(
-            [("code", "=", DOMAIN_PICKING_TYPES[1])], limit=1
+            [
+                ("code", "=", DOMAIN_PICKING_TYPES[1]),
+                ("company_id", "=", self.env.company.id),
+            ],
+            limit=1,
         )
 
     def _default_volume_uom(self):
@@ -153,6 +158,7 @@ class StockDeliveryNote(models.Model):
         readonly=True,
         required=True,
         index=True,
+        check_company=True,
     )
 
     sequence_id = fields.Many2one("ir.sequence", readonly=True, copy=False)
@@ -169,7 +175,13 @@ class StockDeliveryNote(models.Model):
         domain=_domain_volume_uom,
         states=DONE_READONLY_STATE,
     )
-    gross_weight = fields.Float(string="Gross weight", states=DONE_READONLY_STATE)
+    gross_weight = fields.Float(
+        string="Gross weight",
+        store=True,
+        readonly=False,
+        compute="_compute_weights",
+        states=DONE_READONLY_STATE,
+    )
     gross_weight_uom_id = fields.Many2one(
         "uom.uom",
         string="Gross weight UoM",
@@ -177,7 +189,13 @@ class StockDeliveryNote(models.Model):
         domain=_domain_weight_uom,
         states=DONE_READONLY_STATE,
     )
-    net_weight = fields.Float(string="Net weight", states=DONE_READONLY_STATE)
+    net_weight = fields.Float(
+        string="Net weight",
+        store=True,
+        readonly=False,
+        compute="_compute_weights",
+        states=DONE_READONLY_STATE,
+    )
     net_weight_uom_id = fields.Many2one(
         "uom.uom",
         string="Net weight UoM",
@@ -225,12 +243,16 @@ class StockDeliveryNote(models.Model):
     )
 
     picking_ids = fields.One2many(
-        "stock.picking", "delivery_note_id", string="Pickings"
+        "stock.picking",
+        "delivery_note_id",
+        string="Pickings",
+        check_company=True,
     )
     pickings_picker = fields.Many2many(
         "stock.picking",
         compute="_compute_get_pickings",
         inverse="_inverse_set_pickings",
+        check_company=True,
     )
 
     picking_type = fields.Selection(
@@ -277,13 +299,13 @@ class StockDeliveryNote(models.Model):
             if not note.name:
                 partner_name = note.partner_id.display_name
                 create_date = note.create_date.strftime(DATETIME_FORMAT)
-                name = "{} - {}".format(partner_name, create_date)
+                name = f"{partner_name} - {create_date}"
 
             else:
                 name = note.name
 
                 if note.partner_ref and note.type_code == "incoming":
-                    name = "{} ({})".format(name, note.partner_ref)
+                    name = f"{name} ({note.partner_ref})"
             result.append((note.id, name))
 
         return result
@@ -291,7 +313,7 @@ class StockDeliveryNote(models.Model):
     @api.depends("state", "line_ids", "line_ids.invoice_status")
     def _compute_invoice_status(self):
         for note in self:
-            lines = note.line_ids.filtered(lambda l: l.sale_line_id)
+            lines = note.line_ids.filtered(lambda line: line.sale_line_id)
             invoice_status = DOMAIN_INVOICE_STATUSES[0]
             if lines:
                 if all(
@@ -308,6 +330,30 @@ class StockDeliveryNote(models.Model):
     def _compute_get_pickings(self):
         for note in self:
             note.pickings_picker = note.picking_ids
+
+    @api.depends("picking_ids")
+    def _compute_weights(self):
+        for note in self:
+            # fill gross & net weight from pickings
+            gross_weight = net_weight = 0.0
+            if note.picking_ids:
+                # this is the unit used for shipping_weight
+                weight_uom = self.env[
+                    "product.template"
+                ]._get_weight_uom_id_from_ir_config_parameter()
+                for pick in note.picking_ids:
+                    gross_weight += weight_uom._compute_quantity(
+                        pick.shipping_weight, note.gross_weight_uom_id
+                    )
+                    net_weight += weight_uom._compute_quantity(
+                        pick.shipping_weight, note.net_weight_uom_id
+                    )
+            note.gross_weight = gross_weight
+            note.net_weight = net_weight
+
+    @api.onchange("picking_ids")
+    def _onchange_picking_ids(self):
+        self._compute_weights()
 
     def _inverse_set_pickings(self):
         for note in self:
@@ -481,7 +527,7 @@ class StockDeliveryNote(models.Model):
             cache[line] = line.fix_qty_to_invoice()
 
         pickings_move_ids = self.mapped("picking_ids.move_ids")
-        for line in pickings_lines.filtered(lambda l: len(l.move_ids) > 1):
+        for line in pickings_lines.filtered(lambda line: len(line.move_ids) > 1):
             move_ids = line.move_ids & pickings_move_ids
             qty_to_invoice = sum(move_ids.mapped("quantity_done"))
 
@@ -494,21 +540,26 @@ class StockDeliveryNote(models.Model):
         self.ensure_one()
 
         orders_lines = self.mapped("sale_ids.order_line").filtered(
-            lambda l: l.product_id
+            lambda order_line: order_line.product_id
         )
 
-        downpayment_lines = orders_lines.filtered(lambda l: l.is_downpayment)
-        invoiceable_lines = orders_lines.filtered(lambda l: l.is_invoiceable)
+        downpayment_lines = orders_lines.filtered(
+            lambda order_line: order_line.is_downpayment
+        )
+        invoiceable_lines = orders_lines.filtered(
+            lambda order_line: order_line.is_invoiceable
+        )
 
         cache = self._fix_quantities_to_invoice(invoiceable_lines - downpayment_lines)
 
         for downpayment in downpayment_lines:
             order = downpayment.order_id
             order_lines = order.order_line.filtered(
-                lambda l: l.product_id and not l.is_downpayment
+                lambda order_line: order_line.product_id
+                and not order_line.is_downpayment
             )
 
-            if order_lines.filtered(lambda l: l.need_to_be_invoiced):
+            if order_lines.filtered(lambda order_line: order_line.need_to_be_invoiced):
                 cache[downpayment] = downpayment.fix_qty_to_invoice()
 
         invoice_ids = self.sale_ids.filtered(
@@ -543,6 +594,25 @@ class StockDeliveryNote(models.Model):
             "l10n_it_delivery_note.delivery_note_report_action"
         ).report_action(self)
 
+    @api.model
+    def _get_sync_fields(self):
+        """
+        Returns a list of fields that can be used to
+         synchronize the state of the Delivery Note
+        """
+        return [
+            "date",
+            "transport_datetime",
+            "transport_condition_id",
+            "goods_appearance_id",
+            "transport_reason_id",
+            "transport_method_id",
+            "gross_weight",
+            "net_weight",
+            "packages",
+            "volume",
+        ]
+
     def update_transport_datetime(self):
         self.transport_datetime = datetime.datetime.now()
 
@@ -561,7 +631,7 @@ class StockDeliveryNote(models.Model):
 
     def goto_sales(self, **kwargs):
         sales = self.mapped("sale_ids")
-        action = self.env.ref("sale.action_orders").read()[0]
+        action = self.env["ir.actions.act_window"]._for_xml_id("sale.action_orders")
         action.update(kwargs)
 
         if len(sales) > 1:
@@ -634,19 +704,17 @@ class StockDeliveryNote(models.Model):
     @api.model
     def get_location_address(self, location_id):
         location_address = ""
-        warehouse = self.env["stock.warehouse"].search(
-            [("lot_stock_id", "=", location_id)]
-        )
+        warehouse = self.env["stock.location"].browse(location_id).warehouse_id
 
         if warehouse and warehouse.partner_id:
             partner = warehouse.partner_id
 
-            location_address += "{}, ".format(partner.name)
+            location_address += f"{partner.name}, "
             if partner.street:
-                location_address += "{} - ".format(partner.street)
+                location_address += f"{partner.street} - "
 
-            location_address += "{} {}".format(partner.zip, partner.city)
+            location_address += f"{partner.zip} {partner.city}"
             if partner.state_id:
-                location_address += " ({})".format(partner.state_id.name)
+                location_address += f" ({partner.state_id.name})"
 
         return location_address

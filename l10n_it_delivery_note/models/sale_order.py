@@ -70,11 +70,12 @@ class SaleOrder(models.Model):
 
     def _assign_delivery_notes_invoices(self, invoice_ids):
         order_lines = self.mapped("order_line").filtered(
-            lambda l: l.is_invoiced and l.delivery_note_line_ids
+            lambda order_line: order_line.is_invoiced
+            and order_line.delivery_note_line_ids
         )
 
         delivery_note_lines = order_lines.mapped("delivery_note_line_ids").filtered(
-            lambda l: l.is_invoiceable
+            lambda dn_line: dn_line.is_invoiceable
         )
         delivery_notes = delivery_note_lines.mapped("delivery_note_id")
 
@@ -124,9 +125,9 @@ class SaleOrder(models.Model):
 
     def goto_delivery_notes(self, **kwargs):
         delivery_notes = self.mapped("delivery_note_ids")
-        action = self.env.ref(
+        action = self.env["ir.actions.act_window"]._for_xml_id(
             "l10n_it_delivery_note.stock_delivery_note_action"
-        ).read()[0]
+        )
         action.update(kwargs)
 
         if len(delivery_notes) > 1:

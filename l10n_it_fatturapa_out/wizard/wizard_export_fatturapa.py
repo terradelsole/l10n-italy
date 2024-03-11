@@ -40,9 +40,13 @@ class WizardExportFatturapa(models.TransientModel):
             ("binding_model_id", "=", model_name),
         ]
 
-    report_print_menu = fields.Many2one(
-        comodel_name="ir.actions.report",
-        domain=_domain_ir_values,
+    def _get_selection(self):
+        reports = self.env["ir.actions.actions"].sudo().search(self._domain_ir_values())
+        ret = [(str(r.id), r.name) for r in reports]
+        return ret
+
+    report_print_menu = fields.Selection(
+        selection="_get_selection",
         help="This report will be automatically included in the created XML",
     )
 
@@ -52,13 +56,12 @@ class WizardExportFatturapa(models.TransientModel):
 
         attach_str = fatturapa.to_xml(self.env)
         attach_vals = {
-            "name": "{}_{}.xml".format(vat, number),
+            "name": f"{vat}_{number}.xml",
             "datas": base64.encodebytes(attach_str),
         }
         return attach_obj.create(attach_vals)
 
     def getPartnerId(self, invoice_ids):
-
         invoice_model = self.env["account.move"]
         partner = False
 
@@ -112,7 +115,10 @@ class WizardExportFatturapa(models.TransientModel):
         # report (there are cases in which the partner does not have to
         # paid the VAT, yet its amount has to be printed out and included
         # in the total amount of the invoice)
-        return invoice.amount_total
+        if invoice.company_id.xml_divisa_value == "keep_orig":
+            return invoice.amount_total
+        else:
+            return abs(invoice.amount_total_signed)
 
     @api.model
     def getAllTaxes(self, invoice):
@@ -283,13 +289,18 @@ class WizardExportFatturapa(models.TransientModel):
         return action
 
     def generate_attach_report(self, inv):
-        report_model = self.report_print_menu
+        try:
+            report_id = int(self.report_print_menu)
+        except ValueError as exc:
+            raise UserError(_("Print report not found")) from exc
+
+        report_model = self.env["ir.actions.report"].sudo().browse(report_id)
         attachment, attachment_type = report_model._render_qweb_pdf(
             report_model, inv.ids
         )
         att_id = self.env["ir.attachment"].create(
             {
-                "name": "{}.pdf".format(inv.name),
+                "name": f"{inv.name}.pdf",
                 "type": "binary",
                 "datas": base64.encodebytes(attachment),
                 "res_model": "account.move",
@@ -297,7 +308,7 @@ class WizardExportFatturapa(models.TransientModel):
                 "mimetype": "application/x-pdf",
             }
         )
-        inv.write(
+        inv.sudo().write(
             {
                 "fatturapa_doc_attachments": [
                     (

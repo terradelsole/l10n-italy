@@ -6,7 +6,6 @@ from .delivery_note_common import StockDeliveryNoteCommon
 
 
 class StockDeliveryNoteInvoicingTest(StockDeliveryNoteCommon):
-
     # ⇒ "Ordine singolo: fatturazione completa"
     def test_complete_invoicing_single_so(self):
         #
@@ -183,7 +182,7 @@ class StockDeliveryNoteInvoicingTest(StockDeliveryNoteCommon):
         self.assertEqual(len(move), 0)
 
         delivery_note_line = delivery_note.line_ids.filtered(
-            lambda l: l.sale_line_id == order_line
+            lambda note_line: note_line.sale_line_id == order_line
         )
 
         self.assertEqual(len(delivery_note_line), 0)
@@ -559,7 +558,7 @@ class StockDeliveryNoteInvoicingTest(StockDeliveryNoteCommon):
 
         delivery_notes = first_delivery_note | second_delivery_note
         delivery_note_line = delivery_notes.mapped("line_ids").filtered(
-            lambda l: l.sale_line_id == order_line
+            lambda note_line: note_line.sale_line_id == order_line
         )
 
         self.assertEqual(len(delivery_note_line), 0)
@@ -605,6 +604,11 @@ class StockDeliveryNoteInvoicingTest(StockDeliveryNoteCommon):
         #        ┌ Picking ┘
         #     SO ┘
         #
+
+        # Activate advanced setting to allow more picking in one DN
+        self.env["ir.config_parameter"].sudo().set_param(
+            "l10n_it_delivery_note.group_use_advanced_delivery_notes", True
+        )
 
         first_sales_order = self.create_sales_order(
             [
@@ -781,7 +785,7 @@ class StockDeliveryNoteInvoicingTest(StockDeliveryNoteCommon):
         self.assertEqual(len(move), 0)
 
         delivery_note_line = delivery_note.line_ids.filtered(
-            lambda l: l.sale_line_id == order_line
+            lambda note_line: note_line.sale_line_id == order_line
         )
 
         self.assertEqual(len(delivery_note_line), 0)
@@ -1326,7 +1330,7 @@ class StockDeliveryNoteInvoicingTest(StockDeliveryNoteCommon):
 
         delivery_notes = first_delivery_note | second_delivery_note
         delivery_note_line = delivery_notes.mapped("line_ids").filtered(
-            lambda l: l.sale_line_id == order_line
+            lambda note_line: note_line.sale_line_id == order_line
         )
 
         self.assertEqual(len(delivery_note_line), 0)
