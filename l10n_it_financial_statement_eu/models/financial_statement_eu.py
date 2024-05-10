@@ -82,7 +82,7 @@ class FinancialStatementEU(models.Model):
                 p = line.parent_id.get_parent_path()
             else:
                 p = ""
-            line.complete_name = "[{code}] {p}{name}" % {line.code, p, line.name}
+            line.complete_name = f"[{line.code}] {p}{line.name}"
 
     def name_get(self):
         res = []
