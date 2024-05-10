@@ -1,0 +1,2 @@
+# https://github.com/OCA/partner-contact/pull/1742
+odoo-addon-partner_firstname @ git+https://github.com/OCA/partner-contact.git@refs/pull/1742/head#subdirectory=setup/partner_firstname
